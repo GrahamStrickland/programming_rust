@@ -23,3 +23,6 @@ $HOME
 
 # Rust files
 **/target/*
+
+# Image files
+*.png
