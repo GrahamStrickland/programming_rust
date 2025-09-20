@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 struct Person {
     name: Option<String>,
     birth: i32,
@@ -116,6 +118,17 @@ fn main() {
     let l = Label { number: 3 };
     print(l);
     println!("My label number is: {}", l.number);
+
+    // Rust can infer all these types; written out for clarity
+    let s: Rc<String> = Rc::new("shirataki".to_string());
+    let t: Rc<String> = s.clone();
+    let u: Rc<String> = s.clone();
+
+    assert!(s.contains("shira"));
+    assert_eq!(t.find("taki"), Some(5));
+    println!("{} are quite chewy, almost bouncy, but lack flavor", u);
+
+    // s.push_str(" noodles");
 }
 
 fn print_padovan() {
