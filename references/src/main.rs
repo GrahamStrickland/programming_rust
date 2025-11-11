@@ -12,6 +12,16 @@ struct Point {
     y: i32,
 }
 
+static mut STASH: &i32 = &128;
+fn f(p: &'static i32) {
+    // still not good enough
+    unsafe {
+        STASH = p;
+    }
+}
+
+static WORTH_POINTING_AT: i32 = 1000;
+
 fn main() {
     let mut table = Table::new();
 
@@ -105,6 +115,34 @@ fn main() {
     let r = &factorial(6);
     // Arithmetic operators can see through one level of references.
     assert_eq!(r + &1009, 1729);
+
+    {
+        let r;
+        {
+            let x = 1;
+            r = &x;
+        }
+        // assert_eq!(*r, 1); // bad: reads memory `x` used to occupy
+    }
+
+    {
+        let x = 1;
+        {
+            let r = &x;
+            // ...
+            assert_eq!(*r, 1);
+            // ...
+        }
+    }
+
+    let v = vec![1, 2, 3];
+    let r = &v[1];
+
+    f(&WORTH_POINTING_AT);
+
+    let x = 10;
+    g(&x);
+    // f(&x);
 }
 
 fn show(table: &Table) {
@@ -124,4 +162,9 @@ fn sort_works(table: &mut Table) {
 
 fn factorial(n: usize) -> usize {
     (1..n + 1).product()
+}
+
+// This could be written more briefly: fn g(p: &i32),
+// but let's write out the lifetimes for now.
+fn g<'a>(p: &'a i32) { /* ... */
 }
