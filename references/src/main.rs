@@ -22,6 +22,15 @@ fn f(p: &'static i32) {
 
 static WORTH_POINTING_AT: i32 = 1000;
 
+// This does not compile.
+struct S<'a> {
+    r: &'a i32,
+}
+
+struct D<'a> {
+    s: S<'a>, // not adequate
+}
+
 fn main() {
     let mut table = Table::new();
 
@@ -143,6 +152,21 @@ fn main() {
     let x = 10;
     g(&x);
     // f(&x);
+
+    let s;
+    {
+        let parabola = [9, 4, 1, 0, 1, 4, 9];
+        s = smallest(&parabola);
+        assert_eq!(*s, 0); // fine: parabola still alive
+    }
+    // assert_eq!(*s, 0); // bad: points to elements of dropped array
+
+    let s;
+    {
+        let x = 10;
+        s = S { r: &x };
+    }
+    // assert_eq!(*s.r, 10); // bad: reads from dropped `x`
 }
 
 fn show(table: &Table) {
@@ -167,4 +191,15 @@ fn factorial(n: usize) -> usize {
 // This could be written more briefly: fn g(p: &i32),
 // but let's write out the lifetimes for now.
 fn g<'a>(p: &'a i32) { /* ... */
+}
+
+// v should have at least one element.
+fn smallest(v: &[i32]) -> &i32 {
+    let mut s = &v[0];
+    for r in &v[1..] {
+        if *r < *s {
+            s = r;
+        }
+    }
+    s
 }
