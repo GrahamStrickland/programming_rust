@@ -31,6 +31,26 @@ struct D<'a> {
     s: S<'a>, // not adequate
 }
 
+struct S1<'a, 'b> {
+    x: &'a i32,
+    y: &'b i32,
+}
+
+struct StringTable {
+    elements: Vec<String>,
+}
+
+impl StringTable {
+    fn find_by_prefix(&self, prefix: &str) -> Option<&String> {
+        for i in 0..self.elements.len() {
+            if self.elements[i].starts_with(prefix) {
+                return Some(&self.elements[i]);
+            }
+        }
+        None
+    }
+}
+
 fn main() {
     let mut table = Table::new();
 
@@ -167,6 +187,36 @@ fn main() {
         s = S { r: &x };
     }
     // assert_eq!(*s.r, 10); // bad: reads from dropped `x`
+
+    let x = 10;
+    let r;
+    {
+        let y = 20;
+        {
+            let s = S1 { x: &x, y: &y };
+            r = s.x;
+        }
+    }
+    println!("{}", r);
+
+    let v = vec![4, 8, 19, 27, 34, 10];
+    {
+        let r = &v;
+        r[0]; // ok: vector is still there
+    }
+    let aside = v;
+
+    let mut wave = Vec::new();
+    let head = vec![0.0, 1.0];
+    let tail = [0.0, -1.0];
+
+    extend(&mut wave, &head); // extend wave with another vector
+    extend(&mut wave, &tail); // extend wave with an array
+
+    assert_eq!(wave, vec![0.0, 1.0, 0.0, -1.0]);
+
+    extend(&mut wave, &wave);
+    assert_eq!(wave, vec![0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0]);
 }
 
 fn show(table: &Table) {
@@ -202,4 +252,22 @@ fn smallest(v: &[i32]) -> &i32 {
         }
     }
     s
+}
+
+fn f1<'a, 'b>(r: &'a i32, s: &'b i32) -> &'a i32 {
+    r
+} // looser
+
+fn sum_r_xy(r: &i32, s: S1) -> i32 {
+    r + s.x + s.y
+}
+
+fn first_third(point: &[i32; 3]) -> (&i32, &i32) {
+    (&point[0], &point[2])
+}
+
+fn extend(vec: &mut Vec<f64>, slice: &[f64]) {
+    for elt in slice {
+        vec.push(*elt);
+    }
 }
