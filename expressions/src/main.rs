@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Values;
 use std::fmt;
-use std::io::{self, Write, stdin};
+use std::fs::File;
+use std::io::{self, Error, Write, stdin};
 
 use rand::RngExt;
 
@@ -170,6 +171,11 @@ fn main() {
     };
 
     println!("{}", sqrt);
+
+    f();
+
+    let filename = "hello.txt";
+    let _ = write_hello(filename);
 }
 
 fn error_messages() -> Vec<String> {
@@ -215,3 +221,38 @@ fn trim_comments_and_whitespace(s: String) -> String {
 fn next_number() -> i32 {
     rand::rng().random_range(1..=1000000)
 }
+
+fn f() {
+    // return type omitted: defaults to ()
+    return; // return value omitted: defaults to ()
+}
+
+fn write_hello(filename: &str) -> Result<File, Error> {
+    let mut output = File::create(filename)?;
+
+    // let output = match File::create(filename) {
+    //     Ok(f) => f,
+    //     Err(err) => return Err(err)
+    // };
+
+    match output.write_all(b"hello!\n") {
+        Ok(_) => Ok(output),
+        Err(err) => Err(err),
+    }
+}
+
+// fn wait_for_process(process: &mut Process) -> i32 {
+//     while true {
+//         if process.wait() {
+//             return process.exit_code();
+//         }
+//     }
+// }   // error: mismatched types: expected i32, found ()
+
+// fn serve_forever(socket: ServerSocket, handler: ServerHandler) -> ! {
+//     socket.listen();
+//     loop {
+//         let s = socket.accept();
+//         handler.handle(s);
+//     }
+// }
