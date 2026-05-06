@@ -6,7 +6,7 @@ use std::io::{self, Error, Write, stdin};
 
 use rand::RngExt;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Room {
     name: String,
     hiding_spots: HashMap<String, String>,
@@ -19,6 +19,21 @@ impl Room {
 
     fn hiding_spots(&self) -> Values<'_, String, String> {
         self.hiding_spots.values()
+    }
+}
+
+struct Player {
+    name: String,
+    room: Room,
+}
+
+impl Player {
+    fn new(name: String, room: Room) -> Player {
+        Player { name, room }
+    }
+
+    fn location(&self) -> Room {
+        self.room.clone()
     }
 }
 
@@ -176,6 +191,38 @@ fn main() {
 
     let filename = "hello.txt";
     let _ = write_hello(filename);
+
+    let x = gcd(1302, 462); // function call
+
+    println!("{}", x);
+
+    let player = Player::new(
+        String::from("John Doe"),
+        Room::new(
+            String::from("bedroom"),
+            HashMap::from([(String::from("wardrobe"), String::from("clothes"))]),
+        ),
+    );
+
+    let room = player.location(); // method call
+
+    println!("Player {} is located in {}", player.name, room);
+
+    let mut numbers: Vec<i32> = Vec::new(); // type-associated function call
+
+    // return Vec<i32>::with_capacity(1000);   // error: something about chained comparisons
+
+    // let ramp = (0 .. n).collect<Vec<i32>>();    // same error
+
+    // return Vec::<i32>::with_capacity(1000); // ok, using ::<
+
+    let n = 10;
+
+    let ramp = (0..n).collect::<Vec<i32>>(); // ok, using ::<
+
+    // return Vec::with_capacity(10); // ok, if the fn return type is Vec<i32>
+
+    let ramp: Vec<i32> = (0..n).collect(); // ok, the variable's type is given
 }
 
 fn error_messages() -> Vec<String> {
@@ -256,3 +303,16 @@ fn write_hello(filename: &str) -> Result<File, Error> {
 //         handler.handle(s);
 //     }
 // }
+
+fn gcd(x: i32, y: i32) -> i32 {
+    let mut a = x;
+    let mut b = y;
+
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+
+    a
+}
