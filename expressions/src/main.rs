@@ -3,6 +3,7 @@ use std::collections::hash_map::Values;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Error, Write, stdin};
+use std::mem;
 
 use rand::RngExt;
 
@@ -44,6 +45,83 @@ impl fmt::Display for Room {
             "room {}, hiding_spots: {:?}",
             self.name, self.hiding_spots
         )
+    }
+}
+
+struct Board {
+    white_pawns: u64,
+    white_rooks: u64,
+    white_knights: u64,
+    white_bishops: u64,
+    white_queen: u64,
+    white_king: u64,
+    black_pawns: u64,
+    black_rooks: u64,
+    black_knights: u64,
+    black_bishops: u64,
+    black_queen: u64,
+    black_king: u64,
+}
+
+impl Board {
+    fn new(
+        white_pawns: u64,
+        white_rooks: u64,
+        white_knights: u64,
+        white_bishops: u64,
+        white_queen: u64,
+        white_king: u64,
+        black_pawns: u64,
+        black_rooks: u64,
+        black_knights: u64,
+        black_bishops: u64,
+        black_queen: u64,
+        black_king: u64,
+    ) -> Board {
+        Board {
+            white_pawns,
+            white_rooks,
+            white_knights,
+            white_bishops,
+            white_queen,
+            white_king,
+            black_pawns,
+            black_rooks,
+            black_knights,
+            black_bishops,
+            black_queen,
+            black_king,
+        }
+    }
+}
+
+enum Color {
+    Black,
+    White,
+}
+
+enum PieceType {
+    Pawn,
+    Knight,
+    Bishop,
+    King,
+    Queen,
+    Rook,
+}
+
+struct Piece {
+    color: Color,
+    piece_type: PieceType,
+    coords: (usize, usize),
+}
+
+impl Piece {
+    fn new(color: Color, piece_type: PieceType, coords: (usize, usize)) -> Piece {
+        Piece {
+            color,
+            piece_type,
+            coords,
+        }
     }
 }
 
@@ -223,6 +301,59 @@ fn main() {
     // return Vec::with_capacity(10); // ok, if the fn return type is Vec<i32>
 
     let ramp: Vec<i32> = (0..n).collect(); // ok, the variable's type is given
+
+    let mut game = Board::new(
+        0x00000000_0000ff00_u64,
+        0x00000000_00000081_u64,
+        0x00000000_00000042_u64,
+        0x00000000_00000024_u64,
+        0x00000000_00000008_u64,
+        0x00000000_00000010_u64,
+        0x00ff0000_00000000_u64,
+        0x81000000_00000000_u64,
+        0x42000000_00000000_u64,
+        0x24000000_00000000_u64,
+        0x08000000_00000000_u64,
+        0x10000000_00000000_u64,
+    );
+    let black_pawns = game.black_pawns; // struct field
+
+    let mut coords = (0, 0);
+
+    let y = coords.1; // tuple element
+
+    let mut pieces = [
+        Some(Piece::new(Color::White, PieceType::Rook, (0, 0))),
+        Some(Piece::new(Color::White, PieceType::Knight, (1, 0))),
+        Some(Piece::new(Color::White, PieceType::Bishop, (2, 0))),
+        Some(Piece::new(Color::White, PieceType::King, (3, 0))),
+        Some(Piece::new(Color::White, PieceType::Queen, (4, 0))),
+        Some(Piece::new(Color::White, PieceType::Bishop, (5, 0))),
+        Some(Piece::new(Color::White, PieceType::Knight, (6, 0))),
+        Some(Piece::new(Color::White, PieceType::Rook, (7, 0))),
+    ];
+
+    let i = 0;
+
+    // let piece = pieces[i]; // array element
+
+    game.black_pawns = 0x00ff0000_00000000_u64;
+    coords.1 = 0;
+    pieces[2] = Some(Piece::new(Color::Black, PieceType::Knight, coords));
+
+    let game_moves = vec![game];
+    let midpoint = 0;
+    let end = 0;
+    let second_half = &game_moves[midpoint..end];
+
+    let mut rng = rand::rng();
+    let mut values: Vec<i32> = (0..20).map(|_| rng.random_range(0..100)).collect();
+
+    println!("before: {:?}", values);
+    quicksort(&mut values);
+    println!("after:  {:?}", values);
+
+    assert!(values.windows(2).all(|w| w[0] <= w[1]));
 }
 
 fn error_messages() -> Vec<String> {
@@ -315,4 +446,35 @@ fn gcd(x: i32, y: i32) -> i32 {
     }
 
     a
+}
+
+fn partition<T: Ord>(slice: &mut [T]) -> usize {
+    let pivot_index = slice.len() - 1;
+    let mut i = 0;
+
+    for j in 0..pivot_index {
+        if slice[j] <= slice[pivot_index] {
+            slice.swap(i, j);
+            i += 1;
+        }
+    }
+
+    slice.swap(i, pivot_index);
+
+    i
+}
+
+fn quicksort<T: Ord>(slice: &mut [T]) {
+    if slice.len() <= 1 {
+        return; // Nothing to sort
+    }
+
+    // Partition the slice into two parts, front and back.
+    let pivot_index = partition(slice);
+
+    // Recursively sort the front half of `slice`.
+    quicksort(&mut slice[..pivot_index]);
+
+    // And the back half.
+    quicksort(&mut slice[pivot_index + 1..]);
 }
